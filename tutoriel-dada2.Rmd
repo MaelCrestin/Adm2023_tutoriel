@@ -1,0 +1,176 @@
+---
+title: "R Notebook"
+output: github_document
+---
+Tutoriel de référence : https://benjjneb.github.io/dada2/tutorial.html
+
+```{bash, eval=FALSE}
+#telechargement des donnees
+wget https://github.com/ANF-MetaBioDiv/course-material/archive/refs/heads/main.zip
+#deziper le fichier 
+unzip main.zip
+```
+
+package :: fonction (dans le package here, on utilise la fonction here)
+```{r, eval=FALSE}
+refdb_folder <- here::here("data", "refdb")
+refdb_folder
+```
+
+(créer des sous dossier), permettre de ne pas remplacer un dossier deja existant avec le meme nom
+```{r}
+if (!dir.exists(refdb_folder)) dir.create(refdb_folder, recursive = TRUE)
+```
+
+script = que des lignes de codes et commentaire
+Rnotebook = zone réservé au code, affiche les résultats, commentaire
+markdown = interpreter par github 
+
+```{bash, eval=FALSE}
+cp -R course-material-main/data/raw ./data
+```
+
+
+
+timeout = permet de prolonger le temps de chargement de rstudio (si connection lente)
+```{r}
+getOption("timeout")
+options(timeout=1200)
+
+# we save in variable the path to the refdb
+# in the working space
+silva_train_set <- file.path(refdb_folder,"silva_nr99_v138.1_train_set.fa.gz")
+
+silva_species_assignment <- file.path(refdb_folder,"silva_species_assignment_v138.1.fa.gz")
+
+# then we download the files if they don't already exist
+
+if (!file.exists(silva_train_set)) {
+  download.file("https://zenodo.org/record/4587955/files/silva_nr99_v138.1_train_set.fa.gz",silva_train_set,quiet = TRUE)
+}
+
+if (!file.exists(silva_species_assignment)) {
+  download.file("https://zenodo.org/record/4587955/files/silva_species_assignment_v138.1.fa.gz",silva_species_assignment,quiet = TRUE)
+}
+```
+
+Chercher tous les scripts d'un dossier R et sa documentation
+```{r}
+devtools::load_all(path="/home/rstudio/Adm2023_tutoriel/course-material-main/R")
+```
+
+
+Enregister le chemin d'accès au répertoire contenant nos donnees dans une variable 
+```{r}
+path_to_fastqs <- here::here("data", "raw")
+```
+
+Nous listons les fichiers transférés à l'aide de la fonction list.files(). L'argument pattern vous donne la possibilité de sélectionner uniquement les noms de fichiers correspondant à une expression régulière. Dans notre cas, nous sélectionnons tous les noms de fichiers se terminant par _R1.fastq.gz.
+fnFs =definie une nouvelle variable, pointe vers la liste des donnees, va les chercher et recuperer tous les fichiers contenant "..."
+```{r}
+fnFs <- sort(list.files(path_to_fastqs,
+                        pattern = "_R1.fastq.gz",
+                        full.names = TRUE))
+```
+
+Nous faisons de même pour les échantillons inversés.
+```{r}
+fnRs <- sort(list.files(path_to_fastqs,
+                        pattern = "_R2.fastq.gz",
+                        full.names = TRUE))
+```
+
+basename(): supprimez le chemin pour conserver uniquement le nom du fichier.
+strsplit(): diviser la chaîne de caractères selon un modèle défini. ?strsplitpour les documents.
+
+```{r}
+sample_names <- basename(fnFs) |>
+  strsplit(split = "_") |>
+  sapply(head, 1)
+```
+
+
+```{r}
+basename(fnFs) |>
+  head()
+```
+
+Il ne reste plus qu'à extraire le premier élément de chaque fichier.
+```{r}
+basename(fnFs) |>
+  strsplit(split = "_") |>
+  head()
+```
+
+```{r}
+basename(fnFs) |>
+  strsplit(split = "_") |>
+  sapply(head, 1) |>
+  head()
+```
+
+Astuce : vous pouvez obtenir la même chose en utilisant des expressions régulières :
+```{r}
+gsub("^.+/|_.+$", "", fnFs) |> head()
+```
+
+
+```{r}
+# create a directory for the outputs
+quality_folder <- here::here("outputs",
+                             "dada2",
+                             "quality_plots")
+
+if (!dir.exists(quality_folder)) {
+  dir.create(quality_folder, recursive = TRUE)
+}
+
+qualityprofile(fnFs,fnRs,file.path(quality_folder, "quality_plots.pd f"))
+```
+
+Creer un dossier pour les lectures des résultats 
+```{r}
+path_to_trimmed_reads <- here::here(
+  "outputs",
+  "dada2",
+  "trimmed"
+)
+
+if (!dir.exists(path_to_trimmed_reads)) dir.create(path_to_trimmed_reads, recursive = TRUE)
+```
+
+Met les amorces dans une variable 
+```{r}
+primer_fwd  <- "CCTACGGGNBGCASCAG"
+primer_rev  <- "GACTACNVGGGTATCTAAT"
+```
+
+fnFs = forewar (brin R1), fnRs = Reverse (brin R2)
+```{r}
+Biostrings::readDNAStringSet(
+  fnFs[1],
+  format = "fastq",
+  nrec = 10
+)
+```
+
+
+```{r}
+Biostrings::readDNAStringSet(
+  fnRs[1],
+  format = "fastq",
+  nrec = 10
+)
+```
+
+```{r}
+(primer_log <- primer_trim(
+  forward_files = fnFs,
+  reverse_files = fnRs,
+  primer_fwd = primer_fwd,
+  primer_rev = primer_rev,
+  output_dir = path_to_trimmed_reads,
+  min_size = 200
+))
+```
+
