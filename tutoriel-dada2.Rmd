@@ -387,5 +387,9 @@ git config --global user.email "mael.crestin@gmail.com"
 git config --global user.name "MaelCrestin"
 ```
 
-zdjnked
+```{r}
+library(gitcreds)
+#mdp = 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
+gitcreds_set()
+```
 
