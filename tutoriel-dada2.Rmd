@@ -382,3 +382,10 @@ df_export(log_table, new_rn = "sample") |>
               row.names = FALSE)
 ```
 
+
+```{r}
+library(gitcreds)
+#mdp = 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
+gitcreds_set()
+```
+
