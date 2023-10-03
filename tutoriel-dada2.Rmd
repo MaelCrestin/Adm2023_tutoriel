@@ -235,12 +235,6 @@ visualisation du modèle d'erreur
 dada2::plotErrors(errF, nominalQ=TRUE)
 ```
 
-```{r}
-library(gitcreds)
-#mdp = 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
-gitcreds_set()
-```
-
 
 ```{r}
 derepFs <- dada2::derepFastq(filtFs, verbose = TRUE)
@@ -382,4 +376,4 @@ df_export(log_table, new_rn = "sample") |>
               row.names = FALSE)
 ```
 
-
+jrknf
