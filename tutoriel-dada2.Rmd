@@ -3,7 +3,7 @@ title: "R Notebook"
 output: github_document
 ---
 Tutoriel de référence : https://benjjneb.github.io/dada2/tutorial.html
-hh
+
 ```{bash, eval=FALSE}
 #telechargement des donnees
 wget https://github.com/ANF-MetaBioDiv/course-material/archive/refs/heads/main.zip
